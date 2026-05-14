@@ -836,7 +836,41 @@ exports.init = init;
             const templateConfig = {
                 rememberExpirationKey: "staticrypt_expiration",
                 rememberPassphraseKey: "staticrypt_passphrase",
-                replaceHtmlCallback: null,
+                replaceHtmlCallback: function(plainHTML) {
+                    /* ─── ISA patch ─── 
+                       Default StatiCrypt uses document.write(plainHTML), which is unreliable
+                       for @font-face data URIs in WebKit (Safari, iOS Safari). The font CSS
+                       parses but the data-URI fonts often fail to load in the rewritten document.
+                       Fix: parse decrypted HTML, merge its <head> into the live document
+                       (which triggers fresh @font-face loading in the current parser context),
+                       replace <body>, then re-execute inline scripts (innerHTML doesn't run them). */
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(plainHTML, 'text/html');
+
+                    // Replace head — clears StatiCrypt wrapper styles, brings source's <style> blocks
+                    // (containing all @font-face declarations) into the live document.
+                    while (document.head.firstChild) {
+                        document.head.removeChild(document.head.firstChild);
+                    }
+                    Array.from(doc.head.childNodes).forEach(function(node) {
+                        document.head.appendChild(node.cloneNode(true));
+                    });
+
+                    // Replace body element entirely — preserves source body attributes (class, etc.)
+                    var newBody = doc.body.cloneNode(true);
+                    document.body.parentNode.replaceChild(newBody, document.body);
+
+                    // Re-execute inline scripts — cloneNode/innerHTML does NOT run scripts,
+                    // so we rebuild each <script> node to make the browser execute it.
+                    document.body.querySelectorAll('script').forEach(function(oldScript) {
+                        var newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(function(attr) {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        newScript.textContent = oldScript.textContent;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                },
                 clearLocalStorageCallback: null,
             };
 
