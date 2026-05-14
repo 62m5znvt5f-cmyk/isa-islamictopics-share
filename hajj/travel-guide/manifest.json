@@ -1,0 +1,16 @@
+{
+  "name": "Hajj & ʿUmrah — A Pilgrim's Walkthrough",
+  "short_name": "Hajj Guide",
+  "description": "Editorial Hajj & Umrah pilgrimage walkthrough.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#022517",
+  "theme_color": "#022517",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
